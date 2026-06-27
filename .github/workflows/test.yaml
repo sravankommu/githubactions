@@ -1,15 +1,10 @@
-name: Terraform Deploy
+name: Terraform Destroy (S3 State)
 
 on:
 workflow_dispatch:
-inputs:
-action:
-description: 'Choose action: apply or destroy'
-required: true
-default: 'apply'
 
 jobs:
-terraform:
+terraform-destroy:
 runs-on: ubuntu-latest
 
 ```
@@ -19,37 +14,21 @@ env:
   AWS_DEFAULT_REGION: us-east-1
 
 steps:
-  - name: Checkout
+  - name: Checkout Code
     uses: actions/checkout@v4
 
   - name: Setup Terraform
     uses: hashicorp/setup-terraform@v3
 
-  - name: Terraform Init (S3 Backend)
+  - name: Terraform Init (Connect to S3 State)
     run: terraform init -reconfigure
 
-  - name: Terraform Validate
-    run: terraform validate
+  - name: Verify State (Debug - Optional)
+    run: terraform state list
 
-  # =========================
-  # APPLY FLOW
-  # =========================
-  - name: Terraform Plan (Apply)
-    if: github.event.inputs.action == 'apply'
-    run: terraform plan -out=tfplan
-
-  - name: Terraform Apply
-    if: github.event.inputs.action == 'apply'
-    run: terraform apply -auto-approve tfplan
-
-  # =========================
-  # DESTROY FLOW
-  # =========================
-  - name: Terraform Destroy Plan
-    if: github.event.inputs.action == 'destroy'
+  - name: Create Destroy Plan
     run: terraform plan -destroy -out=destroy.tfplan
 
-  - name: Terraform Destroy Apply
-    if: github.event.inputs.action == 'destroy'
+  - name: Apply Destroy Plan
     run: terraform apply -auto-approve destroy.tfplan
 ```
