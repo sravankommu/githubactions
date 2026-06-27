@@ -1,10 +1,10 @@
-name: Terraform Destroy (S3 State)
+name: Terraform Destroy
 
 on:
 workflow_dispatch:
 
 jobs:
-terraform-destroy:
+terraform:
 runs-on: ubuntu-latest
 
 ```
@@ -14,21 +14,15 @@ env:
   AWS_DEFAULT_REGION: us-east-1
 
 steps:
-  - name: Checkout Code
+  - name: Checkout
     uses: actions/checkout@v4
 
   - name: Setup Terraform
     uses: hashicorp/setup-terraform@v3
 
-  - name: Terraform Init (Connect to S3 State)
+  - name: Terraform Init
     run: terraform init -reconfigure
 
-  - name: Verify State (Debug - Optional)
-    run: terraform state list
-
-  - name: Create Destroy Plan
-    run: terraform plan -destroy -out=destroy.tfplan
-
-  - name: Apply Destroy Plan
-    run: terraform apply -auto-approve destroy.tfplan
+  - name: Terraform Destroy EC2
+    run: terraform destroy -auto-approve
 ```
