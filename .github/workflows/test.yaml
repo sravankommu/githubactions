@@ -1,29 +1,32 @@
 name: Terraform Deploy
 
 on:
-  # push:
-  #   branches: [ main ]
-  workflow_dispatch:   # ✅ Manual trigger only
-
+  workflow_dispatch:
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
 
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: us-east-1 # change if needed
+    permissions:
+      id-token: write     # ✅ REQUIRED for OIDC
+      contents: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ✅ NEW: Authenticate using IAM Role (NO access keys)
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::sravankommu:role/GitHubActionsTerraformRole
+          aws-region: us-east-1
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -reconfigure
 
       - name: Terraform Validate
         run: terraform validate
